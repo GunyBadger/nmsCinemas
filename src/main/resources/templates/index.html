@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:with="title=${'Home • NMS Cinemas'}">
+<head th:replace="~{fragments/ui :: head(${title})}"></head>
+<body>
+  <div th:replace="~{fragments/ui :: navbar('home')}"></div>
+
+  <main class="container">
+    <h1>Welcome to NMS Cinemas</h1>
+    <p>Use the navigation to manage Movies, Theatres, Shows, and Bookings.</p>
+    <ul>
+      <li><a th:href="@{/movies}">Movies</a></li>
+      <li><a th:href="@{/theatres}">Theatres</a></li>
+      <li><a th:href="@{/shows}">Shows</a></li>
+      <li><a th:href="@{/bookings}">Bookings</a></li>
+    </ul>
+  </main>
+
+  <div th:replace="~{fragments/ui :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head(${'Shows • NMS Cinemas'})}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('shows')}"></div>
+
+<main class="container">
+  <h1>Shows</h1>
+
+  <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+  <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+  <div class="actions">
+    <a href="/shows/new" class="btn primary">+ Create Show</a>
+  </div>
+
+  <p>Browse all shows (Movie × Theatre × Date/Time).</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Movie</th>
+        <th>Theatre</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Available Seats</th>
+        <th>Price</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Empty state -->
+      <tr th:if="${#lists.isEmpty(shows)}">
+        <td colspan="9">No shows found.</td>
+      </tr>
+
+      <!-- Rows -->
+      <tr th:each="s : ${shows}">
+        <td th:text="${s.idshows}">1</td>
+
+        <!-- Movie - Safe null checking -->
+        <td>
+          <span th:if="${s.movie != null}" th:text="${s.movie.title}">Movie Title</span>
+          <span th:unless="${s.movie != null}" th:text="'Movie #' + ${s.moviesIdmovies}">Movie #1</span>
+        </td>
+
+        <!-- Theatre - Safe null checking -->
+        <td>
+          <span th:if="${s.theatre != null}" th:text="${s.theatre.name}">Theatre Name</span>
+          <span th:unless="${s.theatre != null}" th:text="'Theatre #' + ${s.theatresIdtheatres}">Theatre #1</span>
+        </td>
+
+        <td th:text="${s.showDate}">2025-01-01</td>
+        <td th:text="${s.showTime}">19:30</td>
+        <td th:text="${s.availableSeats}">0</td>
+        <td th:text="${'$' + #numbers.formatDecimal(s.price, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+        <td th:text="${#temporals.format(s.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 00:00</td>
+
+        <td>
+          <a class="btn" th:href="@{/shows/{idshows}/{movieId}/{theatreId}/edit(
+                        idshows=${s.idshows},
+                        movieId=${s.moviesIdmovies},
+                        theatreId=${s.theatresIdtheatres})}">Edit</a>
+
+          <form th:action="@{/shows/{idshows}/{movieId}/{theatreId}/delete(
+                              idshows=${s.idshows},
+                              movieId=${s.moviesIdmovies},
+                              theatreId=${s.theatresIdtheatres})}"
+                method="post" style="display:inline;"
+                onsubmit="return confirm('Delete this show?');">
+            <button class="btn danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:16px;"><a class="btn" href="/">← Back to Home</a></p>
+</main>
+
+<div th:replace="~{fragments/ui :: footer}"></div>
+
+</body>
+</html>

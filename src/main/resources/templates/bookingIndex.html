@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head(${'Page Title • NMS Cinemas'})}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('bookings')}"></div>
+<main class="container">
+
+  <!-- Flash messages -->
+     <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+     <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+  <div class="toolbar">
+    <p class="sub">Manage movie show reservations. Creating a booking will automatically adjust the show’s available seats.</p>
+    <a class="btn primary" th:href="@{/bookings/new}">+ Create Booking</a>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Show</th>
+        <th>User</th>
+        <th>Seats</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Booked At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${#lists.isEmpty(bookings)}">
+      <td colspan="7">No bookings yet.</td>
+    </tr>
+
+    <tr th:each="b : ${bookings}">
+      <!-- Show -->
+      <td>
+        <div>
+          <strong>
+            <span th:text="${b.show != null && b.show.movie != null ? b.show.movie.title : 'Movie#' + b.showsMoviesIdmovies}">Movie Title</span>
+          </strong>
+        </div>
+        <div class="sub">
+          <span th:text="${b.show != null && b.show.theatre != null ? b.show.theatre.name : 'Theatre#' + b.showsTheatresIdtheatres}">Theatre Name</span>
+          &nbsp;•&nbsp;
+          <span th:text="${b.show != null ? b.show.showDate : '—'}">2025-01-01</span>
+          &nbsp;
+          <span th:text="${b.show != null ? b.show.showTime : ''}">19:30</span>
+        </div>
+        <div class="sub">
+          Price: <span th:text="${#numbers.formatDecimal(b.show != null ? b.show.price : 0, 1, 'COMMA', 2, 'POINT')}">$12.00</span> /
+          Avail: <span th:text="${b.show != null ? b.show.availableSeats : '—'}">100</span>
+        </div>
+      </td>
+
+      <!-- User -->
+      <td>
+        <div th:text="${b.user != null ? b.user.username : 'User#' + b.usersIdusers}">username</div>
+        <div class="sub" th:text="${b.user != null ? b.user.email : ''}">email@example.com</div>
+      </td>
+
+      <!-- Seats -->
+      <td>
+        <div><strong th:text="${b.numberOfSeats}">2</strong></div>
+        <div class="sub" th:text="${b.seatNumbers}">A1,A2</div>
+      </td>
+
+      <!-- Total -->
+      <td>
+        <span th:text="${#numbers.formatDecimal(b.totalAmount, 1, 'COMMA', 2, 'POINT')}">$24.00</span>
+      </td>
+
+      <!-- Status -->
+      <td>
+        <span th:text="${b.status}">CONFIRMED</span>
+      </td>
+
+      <!-- Booked At -->
+      <td>
+        <span th:text="${#temporals.format(b.bookingDate, 'yyyy-MM-dd HH:mm')}">2025-01-01 12:00</span>
+      </td>
+
+      <!-- Actions -->
+      <td class="actions">
+        <a class="btn"
+           th:href="@{/bookings/{id}/{sid}/{smid}/{stid}/{uid}/edit(
+                     id=${b.idbookings},
+                     sid=${b.showsIdshows},
+                     smid=${b.showsMoviesIdmovies},
+                     stid=${b.showsTheatresIdtheatres},
+                     uid=${b.usersIdusers})}">
+          Edit
+        </a>
+
+        <form class="inline"
+              th:action="@{/bookings/{id}/{sid}/{smid}/{stid}/{uid}/delete(
+                         id=${b.idbookings},
+                         sid=${b.showsIdshows},
+                         smid=${b.showsMoviesIdmovies},
+                         stid=${b.showsTheatresIdtheatres},
+                         uid=${b.usersIdusers})}"
+              method="post"
+              onsubmit="return confirm('Delete this booking? Seats will be restored if status is CONFIRMED.');">
+          <button class="btn" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:16px;"><a class="btn" href="/">← Back to Home</a></p>
+</main>
+
+  <div th:replace="~{fragments/ui :: footer}"></div>
+
+</body>
+</html>

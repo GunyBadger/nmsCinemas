@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head(${'Page Title • NMS Cinemas'})}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('theatres')}"></div>
+
+ <main class="container">
+   <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+   <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+  <!-- Dynamic action: create vs update -->
+  <form th:action="${isEdit}
+          ? @{/theatres/{id}(id=${theatre.idtheatres})}
+          : @{/theatres}"
+        th:object="${theatre}"
+        method="post">
+
+    <!-- Name -->
+    <div>
+      <label for="name">Name</label>
+      <input id="name" type="text"
+             th:field="*{name}"
+             th:classappend="${#fields.hasErrors('name')} ? 'field-invalid' : ''"
+             maxlength="45" required />
+      <div class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
+    </div>
+
+    <!-- Location -->
+    <div>
+      <label for="location">Location</label>
+      <input id="location" type="text"
+             th:field="*{location}"
+             th:classappend="${#fields.hasErrors('location')} ? 'field-invalid' : ''"
+             maxlength="100" required />
+      <div class="error" th:if="${#fields.hasErrors('location')}" th:errors="*{location}">Location error</div>
+    </div>
+
+    <!-- Total Seats -->
+    <div>
+      <label for="totalSeats">Total Seats</label>
+      <input id="totalSeats" type="number" min="1" step="1"
+             th:field="*{totalSeats}"
+             th:classappend="${#fields.hasErrors('totalSeats')} ? 'field-invalid' : ''"
+             required />
+      <div class="help">Must be a positive whole number.</div>
+      <div class="error" th:if="${#fields.hasErrors('totalSeats')}" th:errors="*{totalSeats}">Seats error</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" type="submit" th:text="${isEdit} ? 'Update Theatre' : 'Save Theatre'">Save Theatre</button>
+      <a class="btn" th:href="@{/theatres}">Cancel</a>
+    </div>
+  </form>
+</main>
+
+  <div th:replace="~{fragments/ui :: footer}"></div>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head('Show Form - NMS Cinemas')}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('shows')}"></div>
+
+<main class="container">
+
+  <h1 th:text="${isEdit} ? 'Edit Show' : 'Create Show'">Create Show</h1>
+
+  <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+  <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+  <form th:action="${isEdit} ? @{/shows/{idshows}/{movieId}/{theatreId}(idshows=${show.idshows}, movieId=${show.moviesIdmovies}, theatreId=${show.theatresIdtheatres})} : @{/shows}"
+        th:object="${show}"
+        method="post">
+
+    <!-- Movie -->
+    <div>
+      <label for="movie">Movie *</label>
+      <select id="movie"
+              th:field="*{moviesIdmovies}"
+              th:disabled="${isEdit}"
+              th:classappend="${#fields.hasErrors('moviesIdmovies')} ? 'field-invalid' : ''"
+              required>
+        <option value="">-- Select a movie --</option>
+        <option th:each="m : ${movies}" th:value="${m.idmovies}" th:text="${m.title}">Movie title</option>
+      </select>
+      <input type="hidden" th:if="${isEdit}" th:field="*{moviesIdmovies}" />
+      <div class="help" th:if="${isEdit}">Movie is locked during edit.</div>
+      <div class="error" th:if="${#fields.hasErrors('moviesIdmovies')}" th:errors="*{moviesIdmovies}">Movie error</div>
+    </div>
+
+    <!-- Theatre -->
+    <div>
+      <label for="theatre">Theatre *</label>
+      <select id="theatre"
+              th:field="*{theatresIdtheatres}"
+              th:disabled="${isEdit}"
+              th:classappend="${#fields.hasErrors('theatresIdtheatres')} ? 'field-invalid' : ''"
+              required>
+        <option value="">-- Select a theatre --</option>
+        <option th:each="t : ${theatres}" th:value="${t.idtheatres}"
+                th:text="${t.name + ' (' + t.location + ')'}">Theatre name</option>
+      </select>
+      <input type="hidden" th:if="${isEdit}" th:field="*{theatresIdtheatres}" />
+      <div class="help" th:if="${isEdit}">Theatre is locked during edit.</div>
+      <div class="error" th:if="${#fields.hasErrors('theatresIdtheatres')}" th:errors="*{theatresIdtheatres}">Theatre error</div>
+    </div>
+
+    <!-- Date & Time -->
+    <div class="row">
+      <div>
+        <label for="showDate">Show Date *</label>
+        <input id="showDate" type="date"
+               th:field="*{showDate}"
+               th:classappend="${#fields.hasErrors('showDate')} ? 'field-invalid' : ''"
+               required />
+        <div class="error" th:if="${#fields.hasErrors('showDate')}" th:errors="*{showDate}">Date error</div>
+      </div>
+      <div>
+        <label for="showTime">Show Time *</label>
+        <input id="showTime" type="time"
+               th:field="*{showTime}"
+               th:classappend="${#fields.hasErrors('showTime')} ? 'field-invalid' : ''"
+               required />
+        <div class="error" th:if="${#fields.hasErrors('showTime')}" th:errors="*{showTime}">Time error</div>
+      </div>
+    </div>
+
+    <!-- Seats & Price -->
+    <div class="row">
+      <div>
+        <label for="availableSeats">Available Seats *</label>
+        <input id="availableSeats" type="number" min="0" step="1"
+               th:field="*{availableSeats}"
+               th:classappend="${#fields.hasErrors('availableSeats')} ? 'field-invalid' : ''"
+               required />
+        <div class="help">Must be ≤ selected theatre capacity.</div>
+        <div class="error" th:if="${#fields.hasErrors('availableSeats')}" th:errors="*{availableSeats}">Seats error</div>
+      </div>
+      <div>
+        <label for="price">Price *</label>
+        <input id="price" type="number" min="0" step="0.01"
+               th:field="*{price}"
+               th:classappend="${#fields.hasErrors('price')} ? 'field-invalid' : ''"
+               required />
+        <div class="error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">Price error</div>
+      </div>
+    </div>
+
+    <!-- Edit-only note -->
+    <div th:if="${isEdit}" class="note">
+      Movie & Theatre are locked to keep the show's primary key stable. To change them, delete and recreate the show.
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" type="submit" th:text="${isEdit} ? 'Update Show' : 'Save Show'">Save Show</button>
+      <a class="btn" th:href="@{/shows}">Cancel</a>
+    </div>
+  </form>
+</main>
+
+<div th:replace="~{fragments/ui :: footer}"></div>
+
+</body>
+</html>

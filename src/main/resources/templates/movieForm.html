@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head(${'Page Title • NMS Cinemas'})}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('movies')}"></div>
+  <main class="container">
+  	<p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+	<p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+  <form th:action="${isEdit} ? @{/movies/{id}(id=${movie.idmovies})} : @{/movies}"
+        th:object="${movie}" method="post">
+
+    <div>
+      <label for="title">Title</label>
+      <input id="title" type="text" th:field="*{title}" th:classappend="${#fields.hasErrors('title')} ? 'field-invalid' : ''" required maxlength="100" />
+      <div class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="genre">Genre</label>
+        <input id="genre" type="text" th:field="*{genre}" th:classappend="${#fields.hasErrors('genre')} ? 'field-invalid' : ''" required maxlength="45" />
+        <div class="error" th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}">Genre error</div>
+      </div>
+      <div>
+        <label for="language">Language</label>
+        <input id="language" type="text" th:field="*{language}" th:classappend="${#fields.hasErrors('language')} ? 'field-invalid' : ''" required maxlength="45" />
+        <div class="error" th:if="${#fields.hasErrors('language')}" th:errors="*{language}">Language error</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="duration">Duration (minutes)</label>
+        <input id="duration" type="number" th:field="*{duration}" th:classappend="${#fields.hasErrors('duration')} ? 'field-invalid' : ''" min="1" step="1" required />
+        <div class="error" th:if="${#fields.hasErrors('duration')}" th:errors="*{duration}">Duration error</div>
+      </div>
+      <div>
+        <label for="rating">Rating (0.0 – 9.9)</label>
+        <input id="rating" type="number" th:field="*{rating}" th:classappend="${#fields.hasErrors('rating')} ? 'field-invalid' : ''" min="0" max="9.9" step="0.1" />
+        <div class="help">Optional • Stored as DECIMAL(2,1)</div>
+        <div class="error" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}">Rating error</div>
+      </div>
+    </div>
+
+    <div>
+      <label for="releaseDate">Release Date</label>
+      <input id="releaseDate" type="date" th:field="*{releaseDate}" th:classappend="${#fields.hasErrors('releaseDate')} ? 'field-invalid' : ''" />
+      <div class="error" th:if="${#fields.hasErrors('releaseDate')}" th:errors="*{releaseDate}">Release date error</div>
+    </div>
+
+    <div>
+      <label for="description">Description</label>
+      <textarea id="description" th:field="*{description}" th:classappend="${#fields.hasErrors('description')} ? 'field-invalid' : ''" placeholder="Short synopsis (optional)"></textarea>
+      <div class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" type="submit">Save Movie</button>
+      <a class="btn" th:href="@{/movies}">Cancel</a>
+    </div>
+  </form>
+</main>
+
+ <div th:replace="~{fragments/ui :: footer}"></div>
+
+</body>
+</html>

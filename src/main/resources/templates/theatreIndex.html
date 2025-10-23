@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head(${'Page Title • NMS Cinemas'})}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('theatres')}"></div>
+<main class="container">
+  <p>Browse all theatres.</p>
+
+  <p><a href="/theatres/new">+ Create Theatre</a></p>
+  <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+  <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+
+  <table>
+	<thead>
+	  <tr>
+	    <th>Name</th>
+	    <th>Location</th>
+	    <th>Total Seats</th>
+	    <th>Created</th>
+	    <th>Actions</th>
+	  </tr>
+	</thead>
+	<tbody>
+	  <tr th:if="${#lists.isEmpty(theatres)}">
+	    <td colspan="5">No theatres found.</td>
+	  </tr>
+	  <tr th:each="t : ${theatres}">
+	    <td th:text="${t.name}">Name</td>
+	    <td th:text="${t.location}">Location</td>
+	    <td th:text="${t.totalSeats}">0</td>
+	    <td th:text="${t.createdAt}">2025-01-01T00:00:00</td>
+	    <td>
+	      <a th:href="@{/theatres/{id}/edit(id=${t.idtheatres})}">Edit</a>
+	      |
+	      <form th:action="@{/theatres/{id}/delete(id=${t.idtheatres})}" method="post" style="display:inline;">
+	        <button type="submit" onclick="return confirm('Delete this theatre?');">Delete</button>
+	      </form>
+	    </td>
+	  </tr>
+	</tbody>
+
+  </table>
+
+  <p>
+    <a href="/">← Back to Home</a>
+  </p>
+</main>
+
+ <div th:replace="~{fragments/ui :: footer}"></div>
+
+</body>
+</html>

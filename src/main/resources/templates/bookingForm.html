@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head('Create Booking - NMS Cinemas')}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('bookings')}"></div>
+<main class="container">
+
+  <h1 th:text="${isEdit} ? 'Edit Booking' : 'Create Booking'">Create Booking</h1>
+
+  <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+  <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+  <form th:action="${isEdit} ? @{'/bookings/' + ${booking.idbookings} + '/' + ${booking.showsIdshows} + '/' + ${booking.showsMoviesIdmovies} + '/' + ${booking.showsTheatresIdtheatres} + '/' + ${booking.usersIdusers}} : @{/bookings}"
+        method="post"
+        th:object="${booking}">
+
+    <div th:if="${isEdit}" class="note">
+      Primary key fields (Show and User) are locked during edit.
+    </div>
+
+    <!-- CREATE MODE -->
+    <div th:if="${!isEdit}">
+      <label for="showSelect">Show *</label>
+      <select id="showSelect" name="showSelect" required>
+        <option value="">-- Select a show --</option>
+        <option th:each="s : ${shows}"
+                th:value="${s.idshows}"
+                th:attr="data-movie-id=${s.moviesIdmovies},data-theatre-id=${s.theatresIdtheatres},data-price=${s.price}">
+          <span th:if="${s.movie != null}" th:text="${s.movie.title}" th:remove="tag"></span>
+          <span th:if="${s.movie == null}" th:text="'Movie'" th:remove="tag"></span>
+          <span th:remove="tag"> - </span>
+          <span th:if="${s.theatre != null}" th:text="${s.theatre.name}" th:remove="tag"></span>
+          <span th:if="${s.theatre == null}" th:text="'Theatre'" th:remove="tag"></span>
+          <span th:remove="tag"> - </span>
+          <span th:text="${s.showDate}" th:remove="tag"></span>
+          <span th:remove="tag"> </span>
+          <span th:text="${s.showTime}" th:remove="tag"></span>
+          <span th:remove="tag"> ($</span>
+          <span th:text="${s.price}" th:remove="tag"></span>
+          <span th:remove="tag">)</span>
+        </option>
+      </select>
+      <div class="help">Select a show to continue.</div>
+
+      <input type="hidden" name="showsIdshows" id="showsIdshows" value="">
+      <input type="hidden" name="showsMoviesIdmovies" id="showsMoviesIdmovies" value="">
+      <input type="hidden" name="showsTheatresIdtheatres" id="showsTheatresIdtheatres" value="">
+    </div>
+
+    <!-- EDIT MODE -->
+    <div th:if="${isEdit}">
+      <label>Show</label>
+      <div style="background:#f9fafb; padding:12px; border-radius:6px; border:1px solid #e5e7eb;">
+        <div>
+          <strong>
+            <span th:if="${booking.show != null and booking.show.movie != null}" th:text="${booking.show.movie.title}">Movie</span>
+            <span th:if="${booking.show == null or booking.show.movie == null}">Movie</span>
+          </strong>
+          <span> - </span>
+          <span th:if="${booking.show != null and booking.show.theatre != null}" th:text="${booking.show.theatre.name}">Theatre</span>
+          <span th:if="${booking.show == null or booking.show.theatre == null}">Theatre</span>
+        </div>
+      </div>
+      <input type="hidden" th:field="*{showsIdshows}">
+      <input type="hidden" th:field="*{showsMoviesIdmovies}">
+      <input type="hidden" th:field="*{showsTheatresIdtheatres}">
+    </div>
+
+    <!-- User -->
+    <div>
+      <label for="userSelect">User *</label>
+      <select id="userSelect" th:field="*{usersIdusers}" th:disabled="${isEdit}" required>
+        <option value="">-- Select a user --</option>
+        <option th:each="u : ${users}" th:value="${u.idusers}" th:text="${u.username}">User</option>
+      </select>
+      <input th:if="${isEdit}" type="hidden" th:field="*{usersIdusers}">
+    </div>
+
+    <!-- Seats -->
+    <div class="row">
+      <div>
+        <label for="numberOfSeats">Number of seats *</label>
+        <input id="numberOfSeats" type="number" min="1" th:field="*{numberOfSeats}" required>
+      </div>
+      <div>
+        <label for="status">Status *</label>
+        <select id="status" th:field="*{status}" required>
+          <option value="CONFIRMED">CONFIRMED</option>
+          <option value="CANCELED">CANCELED</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Seat Numbers -->
+    <div>
+      <label for="seatNumbers">Seat numbers (comma-separated) *</label>
+      <textarea id="seatNumbers" th:field="*{seatNumbers}" placeholder="e.g., A1,A2,A3" required></textarea>
+      <div class="help">Enter seat numbers separated by commas.</div>
+    </div>
+
+    <!-- Total -->
+    <div>
+      <label for="totalAmount">Total amount</label>
+      <input id="totalAmount" type="number" step="0.01" min="0" th:field="*{totalAmount}" placeholder="Auto-calculated">
+      <div class="help">Leave blank for auto-calculation.</div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="actions">
+      <button class="btn primary" type="submit" th:text="${isEdit} ? 'Save Changes' : 'Create Booking'">Create</button>
+      <a class="btn" th:href="@{/bookings}">Cancel</a>
+    </div>
+  </form>
+
+  <script>
+    (function () {
+      var showSelect = document.getElementById('showSelect');
+      var fId = document.getElementById('showsIdshows');
+      var fMid = document.getElementById('showsMoviesIdmovies');
+      var fTid = document.getElementById('showsTheatresIdtheatres');
+      var numberOfSeats = document.getElementById('numberOfSeats');
+      var totalAmount = document.getElementById('totalAmount');
+
+      var currentPrice = 0;
+
+      function updateTotal() {
+        var seats = parseInt(numberOfSeats.value) || 0;
+        var total = currentPrice * seats;
+        if (totalAmount && !totalAmount.value) {
+          totalAmount.placeholder = '$' + total.toFixed(2);
+        }
+      }
+
+      if (showSelect) {
+        showSelect.addEventListener('change', function () {
+          var opt = showSelect.options[showSelect.selectedIndex];
+          var sid = opt.value || '';
+          var mid = opt.getAttribute('data-movie-id') || '';
+          var tid = opt.getAttribute('data-theatre-id') || '';
+          var price = opt.getAttribute('data-price') || '0';
+
+          if (fId) fId.value = sid;
+          if (fMid) fMid.value = mid;
+          if (fTid) fTid.value = tid;
+
+          currentPrice = parseFloat(price);
+
+          console.log('Show selected:', {
+            showId: sid,
+            movieId: mid,
+            theatreId: tid,
+            price: price
+          });
+
+          updateTotal();
+        });
+      }
+
+      if (numberOfSeats) {
+        numberOfSeats.addEventListener('input', updateTotal);
+      }
+    })();
+  </script>
+
+</main>
+
+<div th:replace="~{fragments/ui :: footer}"></div>
+
+</body>
+</html>

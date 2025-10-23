@@ -1,53 +1,56 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/ui :: head(${'Page Title • NMS Cinemas'})}"></head>
+<head th:replace="~{fragments/ui :: head('Movies - NMS Cinemas')}"></head>
 <body>
 <div th:replace="~{fragments/ui :: navbar('movies')}"></div>
 <main class="container">
+  <h1>Movies</h1>
   <p>Browse all movies currently in the database.</p>
 
-  <p><a href="/movies/new">+ Create Movie</a></p>
+  <!-- Only show Create button to admins -->
+  <div th:if="${session.role != null and session.role == 'ADMIN'}">
+    <a class="btn primary" href="/movies/new">+ Create Movie</a>
+  </div>
+
   <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
   <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
 
   <table>
-	    <thead>
-	  <tr>
-	    <th>Title</th>
-	    <th>Genre</th>
-	    <th>Language</th>
-	    <th>Duration (min)</th>
-	    <th>Rating</th>
-	    <th>Release Date</th>
-	    <th>Actions</th>
-	  </tr>
-	</thead>
-	<tbody>
-	  <tr th:if="${#lists.isEmpty(movies)}">
-	    <td colspan="7">No movies found.</td>
-	  </tr>
-	  <tr th:each="m : ${movies}">
-	    <td th:text="${m.title}">Title</td>
-	    <td th:text="${m.genre}">Genre</td>
-	    <td th:text="${m.language}">Language</td>
-	    <td th:text="${m.duration}">0</td>
-	    <td th:text="${m.rating} ?: '-'">-</td>
-	    <td th:text="${m.releaseDate}">2025-01-01</td>
-	    <td>
-	      <a th:href="@{/movies/{id}/edit(id=${m.idmovies})}">Edit</a>
-	      |
-	      <form th:action="@{/movies/{id}/delete(id=${m.idmovies})}" method="post" style="display:inline;">
-	        <button type="submit" onclick="return confirm('Delete this movie?');">Delete</button>
-	      </form>
-	    </td>
-	  </tr>
-	</tbody>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Genre</th>
+        <th>Language</th>
+        <th>Duration (min)</th>
+        <th>Rating</th>
+        <th>Release Date</th>
+        <th th:if="${session.role != null and session.role == 'ADMIN'}">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:if="${#lists.isEmpty(movies)}">
+        <td th:colspan="${session.role != null and session.role == 'ADMIN' ? 7 : 6}">No movies found.</td>
+      </tr>
+      <tr th:each="m : ${movies}">
+        <td th:text="${m.title}">Title</td>
+        <td th:text="${m.genre}">Genre</td>
+        <td th:text="${m.language}">Language</td>
+        <td th:text="${m.duration}">0</td>
+        <td th:text="${m.rating} ?: '-'">-</td>
+        <td th:text="${m.releaseDate}">2025-01-01</td>
+        <td th:if="${session.role != null and session.role == 'ADMIN'}">
+          <a class="btn" th:href="@{/movies/{id}/edit(id=${m.idmovies})}">Edit</a>
+          <form th:action="@{/movies/{id}/delete(id=${m.idmovies})}" method="post" style="display:inline;">
+            <button class="btn danger" type="submit" onclick="return confirm('Delete this movie?');">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
   </table>
 
-  <p><a href="/">← Back to Home</a></p>
+  <p style="margin-top: 16px;"><a class="btn" href="/">← Back to Home</a></p>
 </main>
 
 <div th:replace="~{fragments/ui :: footer}"></div>
-
 </body>
 </html>

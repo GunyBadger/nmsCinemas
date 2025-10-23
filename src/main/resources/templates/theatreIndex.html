@@ -1,53 +1,52 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/ui :: head(${'Page Title • NMS Cinemas'})}"></head>
+<head th:replace="~{fragments/ui :: head('Theatres - NMS Cinemas')}"></head>
 <body>
 <div th:replace="~{fragments/ui :: navbar('theatres')}"></div>
 <main class="container">
+  <h1>Theatres</h1>
   <p>Browse all theatres.</p>
 
-  <p><a href="/theatres/new">+ Create Theatre</a></p>
+  <!-- Only show Create button to admins -->
+  <div th:if="${session.role != null and session.role == 'ADMIN'}">
+    <a class="btn primary" href="/theatres/new">+ Create Theatre</a>
+  </div>
+
   <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
   <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
 
-
   <table>
-	<thead>
-	  <tr>
-	    <th>Name</th>
-	    <th>Location</th>
-	    <th>Total Seats</th>
-	    <th>Created</th>
-	    <th>Actions</th>
-	  </tr>
-	</thead>
-	<tbody>
-	  <tr th:if="${#lists.isEmpty(theatres)}">
-	    <td colspan="5">No theatres found.</td>
-	  </tr>
-	  <tr th:each="t : ${theatres}">
-	    <td th:text="${t.name}">Name</td>
-	    <td th:text="${t.location}">Location</td>
-	    <td th:text="${t.totalSeats}">0</td>
-	    <td th:text="${t.createdAt}">2025-01-01T00:00:00</td>
-	    <td>
-	      <a th:href="@{/theatres/{id}/edit(id=${t.idtheatres})}">Edit</a>
-	      |
-	      <form th:action="@{/theatres/{id}/delete(id=${t.idtheatres})}" method="post" style="display:inline;">
-	        <button type="submit" onclick="return confirm('Delete this theatre?');">Delete</button>
-	      </form>
-	    </td>
-	  </tr>
-	</tbody>
-
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Total Seats</th>
+        <th>Created</th>
+        <th th:if="${session.role != null and session.role == 'ADMIN'}">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:if="${#lists.isEmpty(theatres)}">
+        <td th:colspan="${session.role != null and session.role == 'ADMIN' ? 5 : 4}">No theatres found.</td>
+      </tr>
+      <tr th:each="t : ${theatres}">
+        <td th:text="${t.name}">Name</td>
+        <td th:text="${t.location}">Location</td>
+        <td th:text="${t.totalSeats}">0</td>
+        <td th:text="${#temporals.format(t.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01T00:00:00</td>
+        <td th:if="${session.role != null and session.role == 'ADMIN'}">
+          <a class="btn" th:href="@{/theatres/{id}/edit(id=${t.idtheatres})}">Edit</a>
+          <form th:action="@{/theatres/{id}/delete(id=${t.idtheatres})}" method="post" style="display:inline;">
+            <button class="btn danger" type="submit" onclick="return confirm('Delete this theatre?');">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
   </table>
 
-  <p>
-    <a href="/">← Back to Home</a>
-  </p>
+  <p style="margin-top: 16px;"><a class="btn" href="/">← Back to Home</a></p>
 </main>
 
- <div th:replace="~{fragments/ui :: footer}"></div>
-
+<div th:replace="~{fragments/ui :: footer}"></div>
 </body>
 </html>

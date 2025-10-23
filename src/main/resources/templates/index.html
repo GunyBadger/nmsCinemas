@@ -6,13 +6,108 @@
 
   <main class="container">
     <h1>Welcome to NMS Cinemas</h1>
-    <p>Use the navigation to manage Movies, Theatres, Shows, and Bookings.</p>
-    <ul>
-      <li><a th:href="@{/movies}">Movies</a></li>
-      <li><a th:href="@{/theatres}">Theatres</a></li>
-      <li><a th:href="@{/shows}">Shows</a></li>
-      <li><a th:href="@{/bookings}">Bookings</a></li>
-    </ul>
+
+    <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin: 24px 0;">
+
+      <!-- Login for Existing Users -->
+      <div style="border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; background: #eff6ff;">
+        <h2 style="margin-top: 0;">🔐 User Login</h2>
+        <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">Sign in to manage your bookings</p>
+
+        <form action="/login" method="post">
+          <div style="margin-bottom: 12px;">
+            <label for="loginUsername" style="display: block; margin-bottom: 4px; font-weight: 600;">Username *</label>
+            <input type="text" name="username" id="loginUsername" required
+                   style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                   placeholder="Enter username">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label for="loginPassword" style="display: block; margin-bottom: 4px; font-weight: 600;">Password *</label>
+            <input type="password" name="password" id="loginPassword" required
+                   style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                   placeholder="Enter password">
+          </div>
+
+          <button type="submit" class="btn primary" style="width: 100%;">Sign In</button>
+        </form>
+
+        <p style="margin-top: 12px; font-size: 12px; color: #6b7280; text-align: center;">
+          Don't have an account? Create one →
+        </p>
+      </div>
+
+      <!-- Quick User Creation -->
+      <div style="border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; background: #f0fdf4;">
+        <h2 style="margin-top: 0;">✨ Create Account</h2>
+        <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">New user registration</p>
+
+        <form action="/users" method="post">
+          <div style="margin-bottom: 12px;">
+            <label for="username" style="display: block; margin-bottom: 4px; font-weight: 600;">Username *</label>
+            <input type="text" name="username" id="username" required
+                   style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                   placeholder="Enter username">
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label for="email" style="display: block; margin-bottom: 4px; font-weight: 600;">Email *</label>
+            <input type="email" name="email" id="email" required
+                   style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                   placeholder="user@example.com">
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label for="password" style="display: block; margin-bottom: 4px; font-weight: 600;">Password *</label>
+            <input type="password" name="password" id="password" required
+                   style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                   placeholder="Enter password">
+          </div>
+
+          <input type="hidden" name="role" value="USER">
+
+          <button type="submit" class="btn primary" style="width: 100%;">Create Account</button>
+        </form>
+      </div>
+
+      <!-- Admin Access -->
+      <div style="border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px;">
+        <h2 style="margin-top: 0;">⚙️ Admin Panel</h2>
+        <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">System management (Admin only)</p>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a th:href="@{/movies}" class="btn" style="display: block; text-align: left; padding: 12px;">
+            📽️ Manage Movies
+          </a>
+          <a th:href="@{/theatres}" class="btn" style="display: block; text-align: left; padding: 12px;">
+            🎭 Manage Theatres
+          </a>
+          <a th:href="@{/shows}" class="btn" style="display: block; text-align: left; padding: 12px;">
+            🎬 Manage Shows
+          </a>
+          <a th:href="@{/bookings}" class="btn" style="display: block; text-align: left; padding: 12px;">
+            🎫 View All Bookings
+          </a>
+          <a th:href="@{/users}" class="btn" style="display: block; text-align: left; padding: 12px;">
+            👥 Manage Users
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; padding: 16px; background: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+      <h3 style="margin-top: 0; color: #1e40af;">Getting Started</h3>
+      <ol style="color: #1e40af; line-height: 1.8;">
+        <li><strong>Create Account:</strong> Register using the form above</li>
+        <li><strong>Sign In:</strong> Log in to view available shows</li>
+        <li><strong>Browse Shows:</strong> See movies playing at our theatres</li>
+        <li><strong>Make Booking:</strong> Reserve your seats for a show</li>
+        <li><strong>Manage Bookings:</strong> View and cancel your reservations</li>
+      </ol>
+    </div>
   </main>
 
   <div th:replace="~{fragments/ui :: footer}"></div>

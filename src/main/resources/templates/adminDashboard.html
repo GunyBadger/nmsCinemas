@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head('Admin Dashboard - NMS Cinemas')}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('home')}"></div>
+
+<main class="container">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h1>Admin Dashboard</h1>
+    <a class="btn" th:href="@{/logout}">Logout</a>
+  </div>
+
+  <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+  <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+  <div style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 6px; color: #991b1b; margin-bottom: 24px;">
+    <strong>Admin Access:</strong> You have full system privileges.
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 24px 0;">
+
+    <a th:href="@{/movies}" class="btn" style="display: block; padding: 20px; text-align: center; text-decoration: none;">
+      <div style="font-size: 32px;">&#127909;</div>
+      <div style="margin-top: 8px; font-weight: 600;">Manage Movies</div>
+    </a>
+
+    <a th:href="@{/theatres}" class="btn" style="display: block; padding: 20px; text-align: center; text-decoration: none;">
+      <div style="font-size: 32px;">&#127917;</div>
+      <div style="margin-top: 8px; font-weight: 600;">Manage Theatres</div>
+    </a>
+
+    <a th:href="@{/shows}" class="btn" style="display: block; padding: 20px; text-align: center; text-decoration: none;">
+      <div style="font-size: 32px;">&#127916;</div>
+      <div style="margin-top: 8px; font-weight: 600;">Manage Shows</div>
+    </a>
+
+    <a th:href="@{/bookings}" class="btn" style="display: block; padding: 20px; text-align: center; text-decoration: none;">
+      <div style="font-size: 32px;">&#127915;</div>
+      <div style="margin-top: 8px; font-weight: 600;">All Bookings</div>
+    </a>
+
+    <a th:href="@{/users}" class="btn" style="display: block; padding: 20px; text-align: center; text-decoration: none;">
+      <div style="font-size: 32px;">&#128101;</div>
+      <div style="margin-top: 8px; font-weight: 600;">Manage Users</div>
+    </a>
+
+    <a th:href="@{/}" class="btn" style="display: block; padding: 20px; text-align: center; text-decoration: none;">
+      <div style="font-size: 32px;">&#127968;</div>
+      <div style="margin-top: 8px; font-weight: 600;">Back to Home</div>
+    </a>
+
+  </div>
+
+  <div style="margin-top: 24px; padding: 16px; background: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+    <h3 style="margin-top: 0; color: #1e40af;">Admin Tools</h3>
+    <ul style="color: #1e40af; line-height: 1.8;">
+      <li>Create and manage movies in the catalog</li>
+      <li>Set up theatres with seating capacity</li>
+      <li>Schedule shows for movies across theatres</li>
+      <li>View and manage all user bookings</li>
+      <li>Manage user accounts and permissions</li>
+    </ul>
+  </div>
+</main>
+
+<div th:replace="~{fragments/ui :: footer}"></div>
+</body>
+</html>

@@ -29,7 +29,8 @@ public class Theatre {
     @Column(name = "total_seats", nullable = false)
     private Integer totalSeats;
 
-    @Column(name = "created_at", nullable = true)
+    // ✅ CRITICAL FIX: Add updatable = false
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public Theatre() {}

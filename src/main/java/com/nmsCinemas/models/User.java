@@ -34,7 +34,8 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role = Role.USER;
 
-    @Column(name = "created_at")
+    // ✅ CRITICAL FIX: Add updatable = false to prevent null on update
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     // --- Constructors ---

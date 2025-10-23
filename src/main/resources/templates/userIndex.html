@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/ui :: head('Users • NMS Cinemas')}"></head>
+<body>
+<div th:replace="~{fragments/ui :: navbar('users')}"></div>
+<main class="container">
+
+  <h1>Users</h1>
+
+  <p th:if="${successMessage}" class="alert success" th:text="${successMessage}"></p>
+  <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></p>
+
+  <div class="actions">
+    <a class="btn primary" th:href="@{/users/new}">+ Create User</a>
+  </div>
+
+  <p>Manage user accounts for the cinema booking system.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:if="${#lists.isEmpty(users)}">
+        <td colspan="6">No users found.</td>
+      </tr>
+      <tr th:each="u : ${users}">
+        <td th:text="${u.idusers}">1</td>
+        <td th:text="${u.username}">username</td>
+        <td th:text="${u.email}">email@example.com</td>
+        <td>
+          <span th:text="${u.role}"
+                th:classappend="${u.role.name() == 'ADMIN'} ? 'badge-admin' : 'badge-user'">
+            USER
+          </span>
+        </td>
+        <td th:text="${#temporals.format(u.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 00:00</td>
+        <td>
+          <a class="btn" th:href="@{/users/{id}/edit(id=${u.idusers})}">Edit</a>
+
+          <form th:action="@{/users/{id}/delete(id=${u.idusers})}"
+                method="post"
+                style="display:inline;"
+                onsubmit="return confirm('Delete this user? This cannot be undone.');">
+            <button class="btn danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:16px;"><a class="btn" href="/">← Back to Home</a></p>
+</main>
+
+<div th:replace="~{fragments/ui :: footer}"></div>
+
+<style>
+  .badge-admin {
+    background: #dc2626;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-user {
+    background: #2563eb;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+</style>
+
+</body>
+</html>

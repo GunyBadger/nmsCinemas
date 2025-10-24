@@ -18,7 +18,7 @@
       Primary key fields (Show and User) are locked during edit.
     </div>
 
-    <!-- CREATE MODE -->
+    <!-- CREATE MODE - Show Selection -->
     <div th:if="${!isEdit}">
       <label for="showSelect">Show *</label>
       <select id="showSelect" name="showSelect" required>
@@ -47,7 +47,7 @@
       <input type="hidden" name="showsTheatresIdtheatres" id="showsTheatresIdtheatres" value="">
     </div>
 
-    <!-- EDIT MODE -->
+    <!-- EDIT MODE - Show Display -->
     <div th:if="${isEdit}">
       <label>Show</label>
       <div style="background:#f9fafb; padding:12px; border-radius:6px; border:1px solid #e5e7eb;">
@@ -66,14 +66,23 @@
       <input type="hidden" th:field="*{showsTheatresIdtheatres}">
     </div>
 
-    <!-- User -->
-    <div>
+    <!-- USER SELECTION - ONLY FOR ADMIN -->
+    <div th:if="${isAdmin != null and isAdmin == true}">
       <label for="userSelect">User *</label>
       <select id="userSelect" th:field="*{usersIdusers}" th:disabled="${isEdit}" required>
         <option value="">-- Select a user --</option>
         <option th:each="u : ${users}" th:value="${u.idusers}" th:text="${u.username}">User</option>
       </select>
       <input th:if="${isEdit}" type="hidden" th:field="*{usersIdusers}">
+      <div class="help">Select which user this booking is for.</div>
+    </div>
+
+    <!-- HIDDEN USER FIELD FOR REGULAR USERS -->
+    <input th:if="${isAdmin == null or isAdmin == false}" type="hidden" th:field="*{usersIdusers}">
+
+    <!-- USER DISPLAY FOR REGULAR USERS -->
+    <div th:if="${(isAdmin == null or isAdmin == false) and session.username != null}" class="note">
+      <strong>Booking for:</strong> <span th:text="${session.username}">Current User</span>
     </div>
 
     <!-- Seats -->
@@ -144,13 +153,6 @@
           if (fTid) fTid.value = tid;
 
           currentPrice = parseFloat(price);
-
-          console.log('Show selected:', {
-            showId: sid,
-            movieId: mid,
-            theatreId: tid,
-            price: price
-          });
 
           updateTotal();
         });

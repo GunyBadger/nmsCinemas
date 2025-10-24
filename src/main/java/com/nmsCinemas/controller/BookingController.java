@@ -15,10 +15,12 @@ import com.nmsCinemas.models.Booking;
 import com.nmsCinemas.models.BookingId;
 import com.nmsCinemas.models.Show;
 import com.nmsCinemas.models.ShowId;
+import com.nmsCinemas.models.User;
 import com.nmsCinemas.service.BookingService;
 import com.nmsCinemas.service.ShowService;
 import com.nmsCinemas.service.UserService;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
@@ -36,14 +38,30 @@ public class BookingController {
 
     // === List ===
     @GetMapping("/bookings")
-    public String list(Model model) {
+    public String list(Model model, HttpSession session, RedirectAttributes ra) {
         System.out.println("═══════════════════════════════════════════");
         System.out.println("📋 LOADING BOOKINGS LIST");
         System.out.println("═══════════════════════════════════════════");
 
+        // Check if user is logged in
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first.");
+            return "redirect:/";
+        }
+
         try {
-            List<Booking> bookings = bookingService.findAllWithDetails();
-            System.out.println("✅ Bookings loaded: " + bookings.size());
+            List<Booking> bookings;
+
+            // If admin, show all bookings. If regular user, show only their bookings
+            if (loggedInUser.getRole().name().equals("ADMIN")) {
+                bookings = bookingService.findAllWithDetails();
+                System.out.println("✅ Admin - All bookings loaded: " + bookings.size());
+            } else {
+                bookings = bookingService.findByUser(loggedInUser.getIdusers());
+                System.out.println("✅ User - Own bookings loaded: " + bookings.size());
+            }
+
             model.addAttribute("bookings", bookings);
             return "bookingIndex";
         } catch (Exception e) {
@@ -57,10 +75,16 @@ public class BookingController {
 
     // === Create form ===
     @GetMapping("/bookings/new")
-    public String createForm(Model model) {
+    public String createForm(Model model, HttpSession session, RedirectAttributes ra) {
+        // Check if user is logged in
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first.");
+            return "redirect:/";
+        }
+
         try {
             List<Show> shows = showService.findAllWithDetails();
-            List<com.nmsCinemas.models.User> users = userService.findAll();
 
             System.out.println("═══════════════════════════════════════════");
             System.out.println("📋 BOOKING FORM - LOADING DATA");
@@ -72,33 +96,57 @@ public class BookingController {
                                  ", Theatre: " + (s.getTheatre() != null ? s.getTheatre().getName() : "null") +
                                  ", Price: " + s.getPrice());
             });
-            System.out.println("Users loaded: " + users.size());
-            System.out.println("═══════════════════════════════════════════");
 
             model.addAttribute("booking", new Booking());
             model.addAttribute("shows", shows);
-            model.addAttribute("users", users);
+
+            // Only show user dropdown for admins
+            if (loggedInUser.getRole().name().equals("ADMIN")) {
+                List<User> users = userService.findAll();
+                model.addAttribute("users", users);
+                model.addAttribute("isAdmin", true);
+                System.out.println("Admin mode - Users loaded: " + users.size());
+            } else {
+                model.addAttribute("isAdmin", false);
+                System.out.println("User mode - Booking for: " + loggedInUser.getUsername());
+            }
+
             model.addAttribute("isEdit", false);
+            System.out.println("═══════════════════════════════════════════");
             return "bookingForm";
         } catch (Exception e) {
             System.out.println("❌ ERROR loading booking form:");
             e.printStackTrace();
-            model.addAttribute("errorMessage", "Error loading form: " + e.getMessage());
+            ra.addFlashAttribute("errorMessage", "Error loading form: " + e.getMessage());
             return "redirect:/bookings";
         }
     }
 
     // === Create submit ===
     @PostMapping("/bookings")
-    public String create(@ModelAttribute("booking") Booking booking,  // ✅ REMOVED @Valid
+    public String create(@ModelAttribute("booking") Booking booking,
                          BindingResult br,
+                         HttpSession session,
                          Model model,
                          RedirectAttributes ra) {
+
+        // Check if user is logged in
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first.");
+            return "redirect:/";
+        }
+
+        // ✅ For regular users, automatically set their user ID
+        if (!loggedInUser.getRole().name().equals("ADMIN")) {
+            booking.setUsersIdusers(loggedInUser.getIdusers());
+        }
 
         // ✅ ADD DEBUG LOGGING
         System.out.println("═══════════════════════════════════════════");
         System.out.println("📝 BOOKING CREATE - RECEIVED DATA:");
         System.out.println("═══════════════════════════════════════════");
+        System.out.println("Logged in user: " + loggedInUser.getUsername() + " (Role: " + loggedInUser.getRole() + ")");
         System.out.println("Show ID: " + booking.getShowsIdshows());
         System.out.println("Movie ID: " + booking.getShowsMoviesIdmovies());
         System.out.println("Theatre ID: " + booking.getShowsTheatresIdtheatres());
@@ -109,7 +157,7 @@ public class BookingController {
         System.out.println("Status: " + booking.getStatus());
         System.out.println("═══════════════════════════════════════════");
 
-        // ✅ MANUAL VALIDATION (replaces @Valid for primary keys)
+        // ✅ MANUAL VALIDATION
         // Validate Show selection
         if (booking.getShowsIdshows() == null ||
             booking.getShowsMoviesIdmovies() == null ||
@@ -132,7 +180,7 @@ public class BookingController {
             br.rejectValue("seatNumbers", "seats.required", "Seat numbers are required.");
         }
 
-        // --- Validate Show exists and seat count matches (if PKs are present) ---
+        // --- Validate Show exists and seat count matches ---
         if (!br.hasErrors()) {
             ShowId sid = new ShowId(
                 booking.getShowsIdshows(),
@@ -143,7 +191,7 @@ public class BookingController {
             if (show == null) {
                 br.reject("show.notFound", "Selected show not found.");
             } else {
-                // seatNumbers count matches numberOfSeats
+                // Seat count validation
                 if (booking.getSeatNumbers() != null && booking.getNumberOfSeats() != null) {
                     int count = (int) Arrays.stream(booking.getSeatNumbers().split(","))
                                             .map(String::trim)
@@ -154,7 +202,7 @@ public class BookingController {
                             "Seat list count (" + count + ") must equal Number of seats (" + booking.getNumberOfSeats() + ").");
                     }
                 }
-                // auto-calc total if missing
+                // Auto-calc total if missing
                 if (booking.getTotalAmount() == null &&
                     booking.getNumberOfSeats() != null &&
                     show.getPrice() != null) {
@@ -172,24 +220,37 @@ public class BookingController {
         if (br.hasErrors()) {
             System.out.println("❌ VALIDATION ERRORS: " + br.getAllErrors());
             model.addAttribute("shows", showService.findAllWithDetails());
-            model.addAttribute("users", userService.findAll());
+
+            if (loggedInUser.getRole().name().equals("ADMIN")) {
+                model.addAttribute("users", userService.findAll());
+                model.addAttribute("isAdmin", true);
+            } else {
+                model.addAttribute("isAdmin", false);
+            }
+
             model.addAttribute("errorMessage", "Please correct the highlighted fields.");
             return "bookingForm";
         }
 
         try {
-            Booking saved = bookingService.createBooking(booking); // deducts seats if CONFIRMED
+            Booking saved = bookingService.createBooking(booking);
             System.out.println("✅ BOOKING CREATED: ID = " + saved.getIdbookings());
+            ra.addFlashAttribute("successMessage", "Booking created successfully!");
         } catch (IllegalStateException ex) {
             System.out.println("❌ SERVICE ERROR: " + ex.getMessage());
-            br.reject("seat.error", ex.getMessage());
             model.addAttribute("shows", showService.findAllWithDetails());
-            model.addAttribute("users", userService.findAll());
+
+            if (loggedInUser.getRole().name().equals("ADMIN")) {
+                model.addAttribute("users", userService.findAll());
+                model.addAttribute("isAdmin", true);
+            } else {
+                model.addAttribute("isAdmin", false);
+            }
+
             model.addAttribute("errorMessage", ex.getMessage());
             return "bookingForm";
         }
 
-        ra.addFlashAttribute("successMessage", "Booking created successfully.");
         return "redirect:/bookings";
     }
 
@@ -200,12 +261,27 @@ public class BookingController {
                            @PathVariable("smid") Long showsMoviesIdmovies,
                            @PathVariable("stid") Long showsTheatresIdtheatres,
                            @PathVariable("uid") Long usersIdusers,
+                           HttpSession session,
                            Model model,
                            RedirectAttributes ra) {
+
+        // Check if user is logged in
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first.");
+            return "redirect:/";
+        }
 
         BookingId key = new BookingId(idbookings, showsIdshows, showsMoviesIdmovies, showsTheatresIdtheatres, usersIdusers);
         return bookingService.findById(key)
             .map(b -> {
+                // Regular users can only edit their own bookings
+                if (!loggedInUser.getRole().name().equals("ADMIN") &&
+                    !b.getUsersIdusers().equals(loggedInUser.getIdusers())) {
+                    ra.addFlashAttribute("errorMessage", "You can only edit your own bookings.");
+                    return "redirect:/bookings";
+                }
+
                 model.addAttribute("booking", b);
                 model.addAttribute("isEdit", true);
                 model.addAttribute("shows", showService.findAllWithDetails());
@@ -227,8 +303,22 @@ public class BookingController {
                          @PathVariable("uid") Long usersIdusers,
                          @Valid @ModelAttribute("booking") Booking booking,
                          BindingResult br,
+                         HttpSession session,
                          Model model,
                          RedirectAttributes ra) {
+
+        // Check if user is logged in
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first.");
+            return "redirect:/";
+        }
+
+        // Regular users can only update their own bookings
+        if (!loggedInUser.getRole().name().equals("ADMIN") && !usersIdusers.equals(loggedInUser.getIdusers())) {
+            ra.addFlashAttribute("errorMessage", "You can only edit your own bookings.");
+            return "redirect:/bookings";
+        }
 
         // Lock PKs to prevent tampering
         booking.setIdbookings(idbookings);
@@ -258,9 +348,9 @@ public class BookingController {
         }
 
         try {
-            bookingService.updateBooking(booking); // adjusts seats for status/seat changes
+            bookingService.updateBooking(booking);
+            ra.addFlashAttribute("successMessage", "Booking updated successfully.");
         } catch (IllegalStateException ex) {
-            br.reject("seat.error", ex.getMessage());
             model.addAttribute("isEdit", true);
             model.addAttribute("shows", showService.findAllWithDetails());
             model.addAttribute("users", userService.findAll());
@@ -268,7 +358,6 @@ public class BookingController {
             return "bookingForm";
         }
 
-        ra.addFlashAttribute("successMessage", "Booking updated successfully.");
         return "redirect:/bookings";
     }
 
@@ -279,15 +368,31 @@ public class BookingController {
                          @PathVariable("smid") Long showsMoviesIdmovies,
                          @PathVariable("stid") Long showsTheatresIdtheatres,
                          @PathVariable("uid") Long usersIdusers,
+                         HttpSession session,
                          RedirectAttributes ra) {
-        BookingId key = new BookingId(idbookings, showsIdshows, showsMoviesIdmovies, showsTheatresIdtheatres, usersIdusers);
-        try {
-            bookingService.deleteBooking(key); // restores seats if CONFIRMED
-        } catch (IllegalStateException ex) {
-            ra.addFlashAttribute("errorMessage", ex.getMessage());
+
+        // Check if user is logged in
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first.");
+            return "redirect:/";
+        }
+
+        // Regular users can only delete their own bookings
+        if (!loggedInUser.getRole().name().equals("ADMIN") && !usersIdusers.equals(loggedInUser.getIdusers())) {
+            ra.addFlashAttribute("errorMessage", "You can only delete your own bookings.");
             return "redirect:/bookings";
         }
-        ra.addFlashAttribute("successMessage", "Booking deleted.");
+
+        BookingId key = new BookingId(idbookings, showsIdshows, showsMoviesIdmovies, showsTheatresIdtheatres, usersIdusers);
+
+        try {
+            bookingService.deleteBooking(key);
+            ra.addFlashAttribute("successMessage", "Booking deleted successfully.");
+        } catch (IllegalStateException ex) {
+            ra.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
         return "redirect:/bookings";
     }
 }

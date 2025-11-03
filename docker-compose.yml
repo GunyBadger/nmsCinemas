@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # MySQL Database Container
+  mysql-db:
+    image: mysql:8.0
+    container_name: nms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: P@ddl3dog
+      MYSQL_DATABASE: nmsdb
+    ports:
+      - "3307:3306"  # Using 3307 on host to avoid conflict with local MySQL
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - nms-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pP@ddl3dog"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Application Container
+  nms-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nms-backend
+    restart: unless-stopped
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/nmsdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: P@ddl3dog
+      SERVER_PORT: 8080
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    networks:
+      - nms-network
+
+# Define persistent volume for MySQL data
+volumes:
+  mysql-data:
+    driver: local
+
+# Define network
+networks:
+  nms-network:
+    driver: bridge
